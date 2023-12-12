@@ -8,7 +8,9 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
-import Chart from "@/components/chart";
+// import Chart from "@/components/chart";
+import ApexChart from "@/components/ApexChart";
+import { channel } from "diagnostics_channel";
 
 type PrefecturesData = {
   prefCode: number;
@@ -20,10 +22,16 @@ type ChartData = {
   value: number;
 };
 
+type ChartDataType = {
+  name: string;
+  data: number[];
+};
+
 export default function Home() {
   const [prefectures, setPrefectures] = useState<PrefecturesData[]>([]);
   const [selectedPrefectures, setSelectedPrefectures] = useState<number[]>([]);
-  const [data, setData] = useState<ChartData[]>([]);
+  // const [chartData, setchartData] = useState<ChartData[]>([]);
+  const [chartData, setChartData] = useState<ChartDataType[]>([]);
   // const [data, setData] = useState({
   //   総人口: {},
   //   年少人口: {},
@@ -43,22 +51,31 @@ export default function Home() {
       });
   }, []);
 
-  const convertData = (data: string[]) => {
-    // {year: 2000, 北海道:1000},{year:2050, 北海道}
-    data.map((item) => {});
+  useEffect(() => {
+    console.log(chartData);
+  }, [chartData]);
+
+  const convertData = (prefName: string, addchartData: ChartData[]) => {
+    console.log(addchartData);
+    var convertedData: ChartDataType = {
+      name: prefName,
+      data: addchartData.map((obj) => obj["value"]),
+    };
+    console.log(convertedData);
+    setChartData([...chartData, convertedData]);
   };
 
-  const handleChange = (prefCode: number) => {
+  const handleChange = (prefecture: PrefecturesData) => {
     axios
       .get(
-        `https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?prefCode=${prefCode}`,
+        `https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?prefCode=${prefecture.prefCode}`,
         {
           headers: { "X-API-KEY": process.env.NEXT_PUBLIC_API_KEY },
         }
       )
       .then((res) => {
-        console.log(res.data);
-        setData(res.data.result.data[0].data);
+        // console.log(res.data);
+        convertData(prefecture.prefName, res.data.result.data[0].data);
       })
       .catch((err) => {
         console.log(err);
@@ -74,14 +91,15 @@ export default function Home() {
               // <Grid item xs={6}>
               <FormControlLabel
                 control={<Checkbox />}
-                onChange={() => handleChange(prefecture.prefCode)}
+                onChange={() => handleChange(prefecture)}
                 label={prefecture.prefName}
               />
               // </Grid>
             ))}
           </FormGroup>
         </Grid>
-        <Chart data={data} />
+        {/* <Chart data={data} /> */}
+        <ApexChart props={chartData}></ApexChart>
       </Container>
     </main>
   );
