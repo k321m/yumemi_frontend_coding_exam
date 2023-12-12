@@ -8,6 +8,7 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
+import Chart from "@/components/chart";
 
 type PrefecturesData = {
   prefCode: number;
@@ -16,6 +17,7 @@ type PrefecturesData = {
 
 export default function Home() {
   const [prefectures, setPrefectures] = useState<PrefecturesData[]>([]);
+  const [selectedPrefectures, setSelectedPrefectures] = useState<number[]>([]);
   useEffect(() => {
     axios
       .get("https://opendata.resas-portal.go.jp/api/v1/prefectures", {
@@ -28,6 +30,30 @@ export default function Home() {
         console.log(err);
       });
   }, []);
+
+  useEffect(() => {
+    console.log(selectedPrefectures);
+    const prefCode: string = selectedPrefectures.join(",");
+    console.log("${prefCode}", prefCode);
+    axios
+      .get(
+        `https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?prefCode=${prefCode}`,
+        {
+          headers: { "X-API-KEY": process.env.NEXT_PUBLIC_API_KEY },
+        }
+      )
+      .then((res) => {
+        console.log(res.data.result.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [selectedPrefectures]);
+
+  const handleChange = (prefCode: number) => {
+    setSelectedPrefectures([...selectedPrefectures, prefCode]);
+  };
+
   return (
     <main>
       <Container maxWidth="sm">
@@ -37,12 +63,14 @@ export default function Home() {
               // <Grid item xs={6}>
               <FormControlLabel
                 control={<Checkbox />}
+                onChange={() => handleChange(prefecture.prefCode)}
                 label={prefecture.prefName}
               />
               // </Grid>
             ))}
           </FormGroup>
         </Grid>
+        <Chart></Chart>
       </Container>
     </main>
   );
