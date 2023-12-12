@@ -8,9 +8,7 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
-// import Chart from "@/components/chart";
-import ApexChart from "@/components/ApexChart";
-import { channel } from "diagnostics_channel";
+import ApexChart from "@/components/LineChart";
 
 type PrefecturesData = {
   prefCode: number;
@@ -29,9 +27,9 @@ type ChartDataType = {
 
 export default function Home() {
   const [prefectures, setPrefectures] = useState<PrefecturesData[]>([]);
-  const [selectedPrefectures, setSelectedPrefectures] = useState<number[]>([]);
-  // const [chartData, setchartData] = useState<ChartData[]>([]);
-  const [chartData, setChartData] = useState<ChartDataType[]>([]);
+  const [selectedPrefsPopulation, setSelectedPrefsPopulation] = useState<
+    ChartDataType[]
+  >([]);
   // const [data, setData] = useState({
   //   総人口: {},
   //   年少人口: {},
@@ -52,17 +50,23 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    console.log(chartData);
-  }, [chartData]);
+    console.log(selectedPrefsPopulation);
+  }, [selectedPrefsPopulation]);
 
   const convertData = (prefName: string, addchartData: ChartData[]) => {
-    console.log(addchartData);
-    var convertedData: ChartDataType = {
-      name: prefName,
-      data: addchartData.map((obj) => obj["value"]),
-    };
-    console.log(convertedData);
-    setChartData([...chartData, convertedData]);
+    if (selectedPrefsPopulation.some((item) => item.name === prefName)) {
+      setSelectedPrefsPopulation(
+        selectedPrefsPopulation.filter((item) => item.name !== prefName)
+      );
+      return;
+    }
+    setSelectedPrefsPopulation([
+      ...selectedPrefsPopulation,
+      {
+        name: prefName,
+        data: addchartData.map((obj) => obj["value"]),
+      },
+    ]);
   };
 
   const handleChange = (prefecture: PrefecturesData) => {
@@ -74,7 +78,6 @@ export default function Home() {
         }
       )
       .then((res) => {
-        // console.log(res.data);
         convertData(prefecture.prefName, res.data.result.data[0].data);
       })
       .catch((err) => {
@@ -88,18 +91,15 @@ export default function Home() {
         <Grid container>
           <FormGroup row={true}>
             {prefectures.map((prefecture) => (
-              // <Grid item xs={6}>
               <FormControlLabel
                 control={<Checkbox />}
                 onChange={() => handleChange(prefecture)}
                 label={prefecture.prefName}
               />
-              // </Grid>
             ))}
           </FormGroup>
         </Grid>
-        {/* <Chart data={data} /> */}
-        <ApexChart props={chartData}></ApexChart>
+        <ApexChart props={selectedPrefsPopulation}></ApexChart>
       </Container>
     </main>
   );

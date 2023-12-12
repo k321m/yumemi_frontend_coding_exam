@@ -21,29 +21,11 @@ export default function ApexChart(props: ChartDataType[]) {
         id: "basic-bar",
       },
       xaxis: {
+        title: { text: "年度" },
         categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999],
       },
     },
   });
-
-  const series = [
-    {
-      name: "series-1",
-      data: [30, 40, 45, 50, 49, 60, 70, 91],
-    },
-    {
-      name: "series-1",
-      data: [30, 40, 45, 50, 49, 60, 70, 91],
-    },
-  ];
-  //   useEffect(() => {
-  //     setData((obj) => ({
-  //       ...obj,
-  //       series: [...obj.series, chartData],
-  //     }));
-  //   });
-
-  console.log(series);
 
   return (
     <div className="app">
