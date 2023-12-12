@@ -8,7 +8,7 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
-import ApexChart from "@/components/LineChart";
+import LineChart from "@/components/LineChart";
 
 type PrefecturesData = {
   prefCode: number;
@@ -49,10 +49,6 @@ export default function Home() {
       });
   }, []);
 
-  useEffect(() => {
-    console.log(selectedPrefsPopulation);
-  }, [selectedPrefsPopulation]);
-
   const convertData = (prefName: string, addchartData: ChartData[]) => {
     if (selectedPrefsPopulation.some((item) => item.name === prefName)) {
       setSelectedPrefsPopulation(
@@ -87,7 +83,7 @@ export default function Home() {
 
   return (
     <main>
-      <Container maxWidth="sm">
+      <Container maxWidth="md">
         <Grid container>
           <FormGroup row={true}>
             {prefectures.map((prefecture) => (
@@ -99,7 +95,7 @@ export default function Home() {
             ))}
           </FormGroup>
         </Grid>
-        <ApexChart props={selectedPrefsPopulation}></ApexChart>
+        <LineChart props={selectedPrefsPopulation}></LineChart>
       </Container>
     </main>
   );

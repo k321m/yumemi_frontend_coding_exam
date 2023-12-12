@@ -1,20 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 
-type ChartData = {
-  year: number;
-  value: number;
-};
-
 type ChartDataType = {
   name: string;
   data: number[];
 };
-interface ApexChart {
-  chartData: ChartDataType[];
-}
-export default function ApexChart(props: ChartDataType[]) {
-  console.log(props);
+export default function LineChart(population: ChartDataType[]) {
   const [data, setData] = useState({
     options: {
       chart: {
@@ -22,7 +13,13 @@ export default function ApexChart(props: ChartDataType[]) {
       },
       xaxis: {
         title: { text: "年度" },
-        categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999],
+        categories: [
+          1960, 1965, 1970, 1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010,
+          2015, 2020, 2025, 2030, 2035, 2040, 2045,
+        ],
+      },
+      yaxis: {
+        title: { text: "人口数" },
       },
     },
   });
@@ -33,9 +30,9 @@ export default function ApexChart(props: ChartDataType[]) {
         <div className="mixed-chart">
           <Chart
             options={data.options}
-            series={props.props}
+            series={population.props}
             type="line"
-            width="500"
+            width="700"
           />
         </div>
       </div>
