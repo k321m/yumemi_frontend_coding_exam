@@ -15,9 +15,21 @@ type PrefecturesData = {
   prefName: string;
 };
 
+type ChartData = {
+  year: number;
+  value: number;
+};
+
 export default function Home() {
   const [prefectures, setPrefectures] = useState<PrefecturesData[]>([]);
   const [selectedPrefectures, setSelectedPrefectures] = useState<number[]>([]);
+  const [data, setData] = useState<ChartData[]>([]);
+  // const [data, setData] = useState({
+  //   総人口: {},
+  //   年少人口: {},
+  //   生産年齢人口: {},
+  //   老年人口: {},
+  // });
   useEffect(() => {
     axios
       .get("https://opendata.resas-portal.go.jp/api/v1/prefectures", {
@@ -31,10 +43,12 @@ export default function Home() {
       });
   }, []);
 
-  useEffect(() => {
-    console.log(selectedPrefectures);
-    const prefCode: string = selectedPrefectures.join(",");
-    console.log("${prefCode}", prefCode);
+  const convertData = (data: string[]) => {
+    // {year: 2000, 北海道:1000},{year:2050, 北海道}
+    data.map((item) => {});
+  };
+
+  const handleChange = (prefCode: number) => {
     axios
       .get(
         `https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?prefCode=${prefCode}`,
@@ -43,22 +57,19 @@ export default function Home() {
         }
       )
       .then((res) => {
-        console.log(res.data.result.data);
+        console.log(res.data);
+        setData(res.data.result.data[0].data);
       })
       .catch((err) => {
         console.log(err);
       });
-  }, [selectedPrefectures]);
-
-  const handleChange = (prefCode: number) => {
-    setSelectedPrefectures([...selectedPrefectures, prefCode]);
   };
 
   return (
     <main>
       <Container maxWidth="sm">
         <Grid container>
-          <FormGroup>
+          <FormGroup row={true}>
             {prefectures.map((prefecture) => (
               // <Grid item xs={6}>
               <FormControlLabel
@@ -70,7 +81,7 @@ export default function Home() {
             ))}
           </FormGroup>
         </Grid>
-        <Chart></Chart>
+        <Chart data={data} />
       </Container>
     </main>
   );
