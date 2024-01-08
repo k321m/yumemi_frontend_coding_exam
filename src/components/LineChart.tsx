@@ -5,7 +5,10 @@ type ChartDataType = {
   name: string;
   data: number[];
 };
-export default function LineChart(population: ChartDataType[]) {
+interface LineChartProps {
+  population: ChartDataType[];
+}
+export default function LineChart({ population }: LineChartProps) {
   const [data, setData] = useState({
     options: {
       chart: {
@@ -30,7 +33,7 @@ export default function LineChart(population: ChartDataType[]) {
         <div className="mixed-chart">
           <Chart
             options={data.options}
-            series={population.props}
+            series={population}
             type="line"
             width="700"
           />
