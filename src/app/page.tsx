@@ -8,7 +8,12 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
-import LineChart from "@/components/LineChart";
+import dynamic from "next/dynamic";
+
+// LineChartを動的にロード
+const LineChart = dynamic(() => import("@/components/LineChart"), {
+  ssr: false,
+});
 
 type PrefecturesData = {
   prefCode: number;
@@ -30,23 +35,23 @@ export default function Home() {
   const [selectedPrefsPopulation, setSelectedPrefsPopulation] = useState<
     ChartDataType[]
   >([]);
-  // const [data, setData] = useState({
-  //   総人口: {},
-  //   年少人口: {},
-  //   生産年齢人口: {},
-  //   老年人口: {},
-  // });
+
   useEffect(() => {
-    axios
-      .get("https://opendata.resas-portal.go.jp/api/v1/prefectures", {
-        headers: { "X-API-KEY": process.env.NEXT_PUBLIC_API_KEY },
-      })
-      .then((res) => {
-        setPrefectures(res.data.result);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          "https://opendata.resas-portal.go.jp/api/v1/prefectures",
+          {
+            headers: { "X-API-KEY": process.env.NEXT_PUBLIC_API_KEY },
+          }
+        );
+        setPrefectures(response.data.result);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const convertData = (prefName: string, addchartData: ChartData[]) => {
@@ -80,7 +85,6 @@ export default function Home() {
         console.log(err);
       });
   };
-
   return (
     <main>
       <Container maxWidth="md">
@@ -88,6 +92,7 @@ export default function Home() {
           <FormGroup row={true}>
             {prefectures.map((prefecture) => (
               <FormControlLabel
+                key={prefecture.prefCode}
                 control={<Checkbox />}
                 onChange={() => handleChange(prefecture)}
                 label={prefecture.prefName}
@@ -95,7 +100,9 @@ export default function Home() {
             ))}
           </FormGroup>
         </Grid>
-        <LineChart props={selectedPrefsPopulation}></LineChart>
+        {typeof window !== "undefined" && (
+          <LineChart population={selectedPrefsPopulation}></LineChart>
+        )}
       </Container>
     </main>
   );
