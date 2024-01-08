@@ -7,34 +7,40 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
+  Stack,
+  Button,
 } from "@mui/material";
 import dynamic from "next/dynamic";
 
-// LineChartを動的にロード
+// FIX:LineChartを動的にロード
 const LineChart = dynamic(() => import("@/components/LineChart"), {
   ssr: false,
 });
 
-type PrefecturesData = {
+type PrefecturesDataType = {
   prefCode: number;
   prefName: string;
 };
 
-type ChartData = {
-  year: number;
-  value: number;
+type SelectedPrefsPopulationsType = {
+  name: string;
+  code: number;
+  total: number[];
+  young: number[];
+  working: number[];
+  eldery: number[];
 };
 
-type ChartDataType = {
-  name: string;
-  data: number[];
-};
+type SelectdDataType = "total" | "young" | "working" | "eldery";
 
 export default function Home() {
-  const [prefectures, setPrefectures] = useState<PrefecturesData[]>([]);
-  const [selectedPrefsPopulation, setSelectedPrefsPopulation] = useState<
-    ChartDataType[]
+  const [prefectures, setPrefectures] = useState<PrefecturesDataType[]>([]); // 都道府県名
+  const [selectedPrefsPopulations, setSelectedPrefsPopulations] = useState<
+    // 選択されている都道府県の人口データ
+    SelectedPrefsPopulationsType[]
   >([]);
+  const [selectedDataType, setSelectedDataType] =
+    useState<SelectdDataType>("total");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,23 +60,19 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const convertData = (prefName: string, addchartData: ChartData[]) => {
-    if (selectedPrefsPopulation.some((item) => item.name === prefName)) {
-      setSelectedPrefsPopulation(
-        selectedPrefsPopulation.filter((item) => item.name !== prefName)
+  const handleChange = (prefecture: PrefecturesDataType) => {
+    // 都道府県が既に選択されていた場合
+    if (
+      selectedPrefsPopulations.some((item) => item.code === prefecture.prefCode)
+    ) {
+      setSelectedPrefsPopulations(
+        selectedPrefsPopulations.filter(
+          (item) => item.name !== prefecture.prefName
+        )
       );
       return;
     }
-    setSelectedPrefsPopulation([
-      ...selectedPrefsPopulation,
-      {
-        name: prefName,
-        data: addchartData.map((obj) => obj["value"]),
-      },
-    ]);
-  };
-
-  const handleChange = (prefecture: PrefecturesData) => {
+    // 都道府県名が選択されていなかった場合
     axios
       .get(
         `https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?prefCode=${prefecture.prefCode}`,
@@ -79,12 +81,33 @@ export default function Home() {
         }
       )
       .then((res) => {
-        convertData(prefecture.prefName, res.data.result.data[0].data);
+        addSelectedPrefsPopulation(prefecture, res.data.result.data);
       })
       .catch((err) => {
         console.log(err);
       });
   };
+
+  const addSelectedPrefsPopulation = (
+    prefecture: PrefecturesDataType,
+    populations: Array<{
+      data: Array<{ year: number; value: number }>;
+      label: string;
+    }>
+  ) => {
+    setSelectedPrefsPopulations([
+      ...selectedPrefsPopulations,
+      {
+        name: prefecture.prefName,
+        code: prefecture.prefCode,
+        total: populations[0].data.map((obj) => obj["value"]),
+        young: populations[1].data.map((obj) => obj["value"]),
+        working: populations[2].data.map((obj) => obj["value"]),
+        eldery: populations[3].data.map((obj) => obj["value"]),
+      },
+    ]);
+  };
+
   return (
     <main>
       <Container maxWidth="md">
@@ -100,8 +123,42 @@ export default function Home() {
             ))}
           </FormGroup>
         </Grid>
+        <Stack spacing={1} direction="row">
+          <Button
+            variant="outlined"
+            onClick={() => setSelectedDataType("total")}
+          >
+            総人口数
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setSelectedDataType("young")}
+          >
+            年少人口
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setSelectedDataType("working")}
+          >
+            生産年齢人口
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => setSelectedDataType("eldery")}
+          >
+            老年人口
+          </Button>
+        </Stack>
+
         {typeof window !== "undefined" && (
-          <LineChart population={selectedPrefsPopulation}></LineChart>
+          <LineChart
+            LineChartData={selectedPrefsPopulations.map(
+              ({ name, ...rest }) => ({
+                name: name,
+                data: rest[selectedDataType],
+              })
+            )}
+          ></LineChart>
         )}
       </Container>
     </main>

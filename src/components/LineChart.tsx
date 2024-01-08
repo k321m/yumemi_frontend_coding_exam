@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
 
-type ChartDataType = {
+type LineChartDataType = {
   name: string;
   data: number[];
 };
+
 interface LineChartProps {
-  population: ChartDataType[];
+  LineChartData: LineChartDataType[];
 }
-export default function LineChart({ population }: LineChartProps) {
-  const [data, setData] = useState({
+export default function LineChart({ LineChartData }: LineChartProps) {
+  const [lineChartData, setLineChartData] = useState({
     options: {
       chart: {
         id: "basic-bar",
@@ -32,8 +33,8 @@ export default function LineChart({ population }: LineChartProps) {
       <div className="row">
         <div className="mixed-chart">
           <Chart
-            options={data.options}
-            series={population}
+            options={lineChartData.options}
+            series={LineChartData}
             type="line"
             width="700"
           />
